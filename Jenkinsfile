@@ -1,34 +1,42 @@
-pipeline {
+pipeline{
     agent any
+    tools{
+        maven 'maven'
     
-    tools {
-        maven 'local_maven'
-    }
-    parameters {
-         string(name: 'staging_server', defaultValue: '13.232.37.20', description: 'Remote Staging Server')
-    }
+     }
+     stages{
+        stage("clone code"){
+            steps{
+              git credentialsId: 'git_credentials', url:'https://github.com/tejaswini9949/devops.git'
+                
+                
+                            }
 
-stages{
+
+        }
         stage('Build'){
-            steps {
+
+            steps{
+
                 sh 'mvn clean package'
             }
-            post {
-                success {
-                    echo 'Archiving the artifacts'
-                    archiveArtifacts artifacts: '**/target/*.war'
-                }
-            }
+            
+            
         }
+        stage('Deploy to tomcat server'){
 
-        stage ('Deployments'){
-            parallel{
-                stage ("Deploy to Staging"){
-                    steps {
-                        sh "scp -v -o StrictHostKeyChecking=no **/*.war root@${params.staging_server}:/opt/tomcat/webapps/"
-                    }
+            steps{
+                
+              sshagent(['tom']) {
+                  
+    sh "scp -v -o StrictHostKeyChecking=no target/vansro-1.0-SNAPSHOT.jar root@15.207.110.255:/opt/tomcat/webapps"
                 }
+               
             }
+            
         }
-    }
+        
+     }
 }
+
+              
